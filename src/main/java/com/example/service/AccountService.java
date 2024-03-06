@@ -1,5 +1,7 @@
 package com.example.service;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,8 +22,9 @@ public class AccountService {
         return accountRepository.save(account); 
 }
 
-    public boolean findByUsername(String username){
-        
-        return false;
+
+    public Account findByUsername(String username) {
+        return accountRepository.findByUsername(username);
     }
+    
 }
