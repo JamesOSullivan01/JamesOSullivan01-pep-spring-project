@@ -1,10 +1,6 @@
 package com.example.service;
-
-import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.example.entity.Account;
 import com.example.repository.AccountRepository;
 @Service
@@ -26,5 +22,9 @@ public class AccountService {
     public Account findByUsername(String username) {
         return accountRepository.findByUsername(username);
     }
+
+    public Account findByaccount_id(Integer account_id) {
+        return accountRepository.findByaccount_id(account_id);
+    }    
     
 }
