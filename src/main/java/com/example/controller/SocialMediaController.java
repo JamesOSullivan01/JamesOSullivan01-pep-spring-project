@@ -42,5 +42,15 @@ public class SocialMediaController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
 }
+    @PostMapping("/login")
+    public ResponseEntity<Account> loginToApp(@RequestBody Account account) {
+    Account existingAccount = accountService.findByUsername(account.getUsername());
+    if (existingAccount != null && existingAccount.getPassword().equals(account.getPassword())) {
+        return ResponseEntity.ok(existingAccount);
+    } else {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+}
+
 
 }
