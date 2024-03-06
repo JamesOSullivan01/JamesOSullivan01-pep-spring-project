@@ -4,10 +4,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import javax.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -95,19 +98,8 @@ public class SocialMediaController {
         }
     }
 
-
-// ## 5: Our API should be able to retrieve a message by its ID.
-
-// As a user, I should be able to submit a GET request on the endpoint 
-// GET localhost:8080/messages/{message_id}.
-
-// - The response body should contain a JSON representation of the message 
-// identified by the message_id. It is expected for the response body to simply be 
-// empty if there is no such message. The response status should always be 200, which is the default.
-
-
-@GetMapping("/messages/{message_id}")
-public ResponseEntity<Message> getMessageById(@PathVariable("message_id") Integer messageId) {
+    @GetMapping("/messages/{message_id}")
+    public ResponseEntity<Message> getMessageById(@PathVariable("message_id") Integer messageId) {
     Message message = messageRepository.findBymessage_id(messageId);
     if (message != null) {
         return ResponseEntity.ok(message);
@@ -115,6 +107,27 @@ public ResponseEntity<Message> getMessageById(@PathVariable("message_id") Intege
         return ResponseEntity.ok(null);
     }
 }
+// ## 6: Our API should be able to delete a message identified by a message ID.
+
+// As a User, I should be able to submit a DELETE request on the endpoint DELETE 
+// localhost:8080/messages/{message_id}.
+
+// - The deletion of an existing message should remove an existing message from the database. 
+// If the message existed, the response body should contain the number of rows updated (1). 
+// The response status should be 200, which is the default.
+// - If the message did not exist, the response status should be 200, but the response body 
+// should be empty. This is because the DELETE verb is intended to be idempotent, ie, multiple
+//  calls to the DELETE endpoint should respond with the same type of response.
+@DeleteMapping("/messages/{message_id}")
+public ResponseEntity<Object> deleteMessageById(@PathVariable("message_id") Integer messageId) {
+    if (messageRepository.findBymessage_id(messageId) != null) {
+        messageRepository.deleteBymessage_id(messageId);
+        return ResponseEntity.ok().body(1);
+    } else {
+        return ResponseEntity.ok().build();
+    }
+}
+    
     
     private boolean isValidMessage(Message message) {
         boolean messageIdValid = message.getMessage_id() == null;
