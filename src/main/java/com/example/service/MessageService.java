@@ -15,10 +15,10 @@ public class MessageService {
         this.messageRepository = messageRepository;
     }
 
-
-
     public Message save(Message message) {
         return messageRepository.save(message); 
-
     }
+    
+    
+
 }

@@ -13,6 +13,7 @@ public interface AccountRepository extends JpaRepository<Account, Long>{
     @Query("SELECT a FROM Account a WHERE a.account_id = :account_id")  
     Account findByaccount_id (Integer account_id);
 
+    
 
 
 }

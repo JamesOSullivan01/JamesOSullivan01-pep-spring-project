@@ -1,15 +1,20 @@
 package com.example.controller;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.example.entity.Account;
 import com.example.entity.Message;
+import com.example.repository.MessageRepository;
 import com.example.service.AccountService;
 import com.example.service.MessageService;
 
@@ -23,16 +28,20 @@ import com.example.service.MessageService;
 public class SocialMediaController {
 
     @Autowired
+    private MessageRepository messageRepository;
+
+    @Autowired
     private final AccountService accountService;
 
     @Autowired
     private MessageService messageService;
 
     @Autowired
-    public SocialMediaController(AccountService accountService, MessageService messageService) {
+    public SocialMediaController(AccountService accountService, MessageService messageService, MessageRepository messageRepository) {
         this.accountService = accountService;
         this.messageService = messageService;
-    }
+        this.messageRepository = messageRepository;
+    }   
 
 
 
@@ -60,18 +69,6 @@ public class SocialMediaController {
     }
 }
 
-// ## 3: Our API should be able to process the creation of new messages.
-
-// As a user, I should be able to submit a new post on the endpoint POST localhost:8080/messages. 
-// The request body will contain a JSON representation of a message, which should be persisted to 
-// the database, but will not contain a message_id.
-
-// - The creation of the message will be successful if and only if the message_text is not blank, 
-// is not over 255 characters, and posted_by refers to a real, existing user. If successful, 
-// the response body should contain a JSON of the message, including its message_id. 
-// The response status should be 200, which is the default. The new message should be persisted to the database.
-// - If the creation of the message is not successful, the response status should be 400. (Client error)
-
     @PostMapping("/messages")
     public ResponseEntity<Message> createMessage(@RequestBody Message message) {
         if (isValidMessage(message)) {
@@ -86,7 +83,38 @@ public class SocialMediaController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
-    
+
+
+    @GetMapping("/messages")
+    public ResponseEntity<List<Message>> getAllMessages() {
+        List<Message> messages = messageRepository.findAll();
+        if (messages.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.ok(messages);
+        }
+    }
+
+
+// ## 5: Our API should be able to retrieve a message by its ID.
+
+// As a user, I should be able to submit a GET request on the endpoint 
+// GET localhost:8080/messages/{message_id}.
+
+// - The response body should contain a JSON representation of the message 
+// identified by the message_id. It is expected for the response body to simply be 
+// empty if there is no such message. The response status should always be 200, which is the default.
+
+
+@GetMapping("/messages/{message_id}")
+public ResponseEntity<Message> getMessageById(@PathVariable("message_id") Integer messageId) {
+    Message message = messageRepository.findBymessage_id(messageId);
+    if (message != null) {
+        return ResponseEntity.ok(message);
+    } else {
+        return ResponseEntity.ok(null);
+    }
+}
     
     private boolean isValidMessage(Message message) {
         boolean messageIdValid = message.getMessage_id() == null;
@@ -96,6 +124,8 @@ public class SocialMediaController {
         boolean postedByValid = message.getPosted_by() != null;
         return messageIdValid && messageTextValid && postedByValid;
     }
+
+    
     
 
 }
