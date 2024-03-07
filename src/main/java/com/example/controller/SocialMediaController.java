@@ -1,5 +1,6 @@
 package com.example.controller;
 
+import java.util.Collections;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -42,6 +43,17 @@ public class SocialMediaController {
         this.messageRepository = messageRepository;
     }   
 
+    private boolean isValidMessage(Message message) {
+        boolean messageIdValid = message.getMessage_id() != null;
+        boolean messageTextValid = message.getMessage_text() != null 
+                                 && !message.getMessage_text().equals("") 
+                                 && !message.getMessage_text().isBlank() 
+                                 && message.getMessage_text().length() <= 255;
+        boolean postedByValid = message.getPosted_by() != null;
+        return messageIdValid && messageTextValid && postedByValid;
+    }
+
+
 
 
     @PostMapping("/register")
@@ -70,7 +82,7 @@ public class SocialMediaController {
 
     @PostMapping("/messages")
     public ResponseEntity<Message> createMessage(@RequestBody Message message) {
-        if (isValidMessage(message)) {
+        if (message.getMessage_text() != null && !message.getMessage_text().isEmpty() && message.getMessage_text().length() <= 255) {
             Account postedBy = accountService.findByaccount_id(message.getPosted_by());
             if (postedBy != null) {
                 Message savedMessage = messageService.save(message);
@@ -132,22 +144,15 @@ public ResponseEntity<Object> deleteMessageById(@PathVariable("message_id") Inte
     @PatchMapping("/messages/{message_id}")
     public ResponseEntity<Object> updateMessageById(@PathVariable("message_id") Integer message_id, @RequestBody String message_text) {
     System.out.println("******Received message text: " + message_text); 
-
     Message messageToUpdate = messageRepository.findBymessage_id(message_id);
-    if (message_text == null || message_text.trim().isEmpty() || message_text.equals("")) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-    }
-    if (message_text.length() > 255){
+
+    if (message_text.isEmpty() || message_text.length() >= 255 || message_text.isBlank() ||
+        message_text == null || message_text == "" || message_text.length() == 0 || message_text.equals("")){
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 
     }
-    if (messageToUpdate != null && isValidMessage(messageToUpdate)) {
+    if (messageToUpdate != null) {
         System.out.println("*|*|*|*|*|*|*|**Message is valid."); 
-        if (message_text.isEmpty()) {
-            System.out.println("****************Message text is empty."); 
-
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
         messageRepository.updateMessagePlease(message_id, message_text);
         return ResponseEntity.ok(1);
     } else {
@@ -155,16 +160,28 @@ public ResponseEntity<Object> deleteMessageById(@PathVariable("message_id") Inte
     }
 }
     
-    
-    private boolean isValidMessage(Message message) {
-        boolean messageIdValid = message.getMessage_id() != null;
-        boolean messageTextValid = message.getMessage_text() != null 
-                                 && !message.getMessage_text().equals("") 
-                                 && !message.getMessage_text().isEmpty() 
-                                 && message.getMessage_text().length() < 255;
-        boolean postedByValid = message.getPosted_by() != null;
-        return messageIdValid && messageTextValid && postedByValid;
+// # 8: Our API should be able to retrieve all messages written by a particular user.
+
+// As a user, I should be able to submit a GET request on the endpoint GET 
+// localhost:8080/accounts/{account_id}/messages.
+
+// - The response body should contain a JSON representation of a list containing all messages
+//  posted by a particular user, which is retrieved from the database. It is expected for the 
+//  list to simply be empty if there are no messages. The response status should always be 200, 
+//  which is the default.
+
+    @GetMapping("/accounts/{account_id}/messages")
+    public ResponseEntity<List<Message>> getAllMessagesFromAUser(@PathVariable("account_id") Integer account_id){
+        Account account = accountService.findByaccount_id(account_id);
+
+        if(account != null){
+            List<Message> messages = messageRepository.findByPostedBy(account_id);
+            return ResponseEntity.ok(messages);
+        } else {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
     }
+    
 
 
 
