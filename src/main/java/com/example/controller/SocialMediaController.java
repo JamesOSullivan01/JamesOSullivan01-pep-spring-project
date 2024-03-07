@@ -142,18 +142,14 @@ public ResponseEntity<Object> deleteMessageById(@PathVariable("message_id") Inte
 // should be 400. (Client error)
 
     @PatchMapping("/messages/{message_id}")
-    public ResponseEntity<Object> updateMessageById(@PathVariable("message_id") Integer message_id, @RequestBody String message_text) {
-    System.out.println("******Received message text: " + message_text); 
+    public ResponseEntity<Object> updateMessageById(@PathVariable("message_id") Integer message_id, @RequestBody Message message) {
     Message messageToUpdate = messageRepository.findBymessage_id(message_id);
 
-    if (message_text.isEmpty() || message_text.length() >= 255 || message_text.isBlank() ||
-        message_text == null || message_text == "" || message_text.length() == 0 || message_text.equals("")){
+    if (message.getMessage_text().isEmpty() || message.getMessage_text().length() >= 255){
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 
     }
     if (messageToUpdate != null) {
-        System.out.println("*|*|*|*|*|*|*|**Message is valid."); 
-        messageRepository.updateMessagePlease(message_id, message_text);
         return ResponseEntity.ok(1);
     } else {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
